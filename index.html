@@ -270,21 +270,12 @@ const APP = { title: "ママへの思い", cover: SONGS[0].cover };
     video.muted = false;
     const p = video.play();
     if (p && p.catch) p.catch(() => { /* 自動で始まらないときは、下の「再生」を押せば始まる */ $('#wait').hidden = true; });
-    enterFull();
   }
 
-  // iPhone は iPhone 自身の全画面にすると下のボタンが隠れるので、アプリの画面いっぱいで流す
-  function enterFull() {
-    if (isIOS) return;
-    const el = player;
-    const req = el.requestFullscreen || el.webkitRequestFullscreen;
-    if (req) {
-      try {
-        const r = req.call(el, { navigationUI: 'hide' });
-        if (r && r.catch) r.catch(() => {});
-      } catch (e) {}
-    }
-  }
+  // スマホの「全画面表示」には切り替えない。
+  //  ・iPhone は下のボタンが隠れる
+  //  ・Android は「全画面表示を終了するには…」というお知らせが画面に出て邪魔になる
+  // かわりにアプリの画面いっぱいで流す（ホーム画面から開けば、ほぼ全画面になる）
   function exitFull() {
     try { if (video.webkitDisplayingFullscreen && video.webkitExitFullscreen) video.webkitExitFullscreen(); } catch (e) {}
     const fe = document.fullscreenElement || document.webkitFullscreenElement;
