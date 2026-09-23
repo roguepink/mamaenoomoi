@@ -1,0 +1,27 @@
+<!doctype html><meta charset="utf-8">
+<!-- アイコンとリンク用サムネイルの型。表紙の画像は make-assets.js が ?cover= で渡す -->
+<style>
+  *{box-sizing:border-box} body{margin:0;background:#111014}
+  .sq{position:relative;overflow:hidden;background:#111014}
+  .sq img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:50% var(--y,50%)}
+  #icon{width:512px;height:512px}
+  /* maskable：丸や角丸に切られても大事なところが残るよう、真ん中 72% に表紙を置く */
+  #mask{width:512px;height:512px}
+  #mask .bg{filter:blur(28px) brightness(.7);transform:scale(1.2)}
+  #mask .inner{position:absolute;left:14%;top:14%;width:72%;height:72%;overflow:hidden;border-radius:10%}
+  #og{width:1200px;height:630px;position:relative;overflow:hidden;background:#111014}
+  #og img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:50% var(--y,50%)}
+  #og::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,transparent 45%,rgba(0,0,0,.75))}
+  #og h1{position:absolute;z-index:1;left:0;right:0;bottom:48px;margin:0;text-align:center;color:#fff;
+    font:700 84px/1.2 "Hiragino Maru Gothic ProN","Noto Sans CJK JP","Noto Sans JP",sans-serif;letter-spacing:.08em;
+    text-shadow:0 3px 10px rgba(0,0,0,.9)}
+</style>
+<div id="icon" class="sq"><img></div>
+<div id="mask" class="sq"><img class="bg"><div class="inner"><img></div></div>
+<div id="og"><img><h1>ママへの思い</h1></div>
+<script>
+  const q = new URLSearchParams(location.search);
+  const src = q.get('cover') || '../assets/covers/01.jpg';
+  document.documentElement.style.setProperty('--y', q.get('y') || '50%');
+  document.querySelectorAll('img').forEach(i => i.src = src);
+</script>

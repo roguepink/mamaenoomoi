@@ -1,0 +1,310 @@
+<title>ママへの思い</title>
+<script>
+/* ================================================================
+   曲の一覧（ここだけ直せば曲が増えます）
+   1曲 = { title: 曲名, video: 動画ファイル, cover: 表紙の画像 }
+   2曲以上になると、最初の画面が「曲カードの縦並び」に自動で変わります。
+   ================================================================ */
+const SONGS = [
+  { title: "ママへの思い", video: "assets/video/01.mp4", cover: "assets/covers/01.jpg" },
+];
+
+/* アプリ全体の名前と表紙（曲が2つ以上のときの一番上に出る画像） */
+const APP = { title: "ママへの思い", cover: SONGS[0].cover };
+</script>
+<style>
+  :root{
+    --bg:#111014;
+    --ink:#FFFFFF;
+    --band:rgba(12,10,14,.72);
+    --btn:#FFD166;      /* ボタンの地（明るい黄色） */
+    --btn-ink:#161310;  /* ボタンの文字（ほぼ黒） 明暗差 13:1 */
+    --card:#FFFFFF;
+    --card-ink:#161310;
+    --hint:#FFF6DC;
+    --hint-ink:#161310;
+    --line:#161310;
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{margin:0;height:100%;background:var(--bg);color:var(--ink)}
+  body{
+    font-family:"Hiragino Maru Gothic ProN","Hiragino Sans","Noto Sans JP","Yu Gothic UI","Meiryo",sans-serif;
+    font-weight:700;line-height:1.45;
+    -webkit-text-size-adjust:100%;text-size-adjust:100%;
+    overscroll-behavior:none;
+    -webkit-user-select:none;user-select:none;-webkit-touch-callout:none;
+  }
+  button{font:inherit;color:inherit;border:0;margin:0;cursor:pointer;touch-action:manipulation}
+  [hidden]{display:none !important}
+
+  /* ---------- 最初の画面 ---------- */
+  .home{position:fixed;inset:0;overflow-y:auto;display:flex;flex-direction:column}
+  .home .cover{position:fixed;inset:0;z-index:0}
+  .home .cover img{width:100%;height:100%;object-fit:cover;display:block}
+  .home .cover::after{content:"";position:absolute;inset:0;
+    background:linear-gradient(180deg,rgba(0,0,0,.05) 35%,rgba(0,0,0,.55) 72%,rgba(0,0,0,.8))}
+  .home .spacer{flex:1 1 auto;min-height:24px}
+  .home .front{position:relative;z-index:1;
+    padding:0 16px calc(24px + env(safe-area-inset-bottom));
+    padding-left:max(16px,env(safe-area-inset-left));padding-right:max(16px,env(safe-area-inset-right));
+    display:flex;flex-direction:column;align-items:stretch;gap:20px}
+  .title{
+    margin:0;align-self:center;text-align:center;
+    font-size:clamp(34px,9.5vw,60px);letter-spacing:.06em;line-height:1.25;
+    padding:.3em .8em;border-radius:18px;background:var(--band);
+    text-shadow:0 2px 6px rgba(0,0,0,.9);
+  }
+  .play{
+    display:flex;align-items:center;justify-content:center;gap:.4em;
+    width:100%;max-width:560px;align-self:center;min-height:96px;padding:14px 20px;
+    font-size:clamp(30px,8.5vw,44px);letter-spacing:.08em;
+    background:var(--btn);color:var(--btn-ink);border-radius:28px;
+    box-shadow:0 6px 0 #B98B1C,0 10px 28px rgba(0,0,0,.55);
+  }
+  .play:active{transform:translateY(4px);box-shadow:0 2px 0 #B98B1C,0 6px 18px rgba(0,0,0,.5)}
+  .play .tri{font-size:.85em}
+
+  /* 曲が2つ以上のとき */
+  .home.many .cover{position:relative;inset:auto;height:36vh;min-height:180px;flex:none}
+  .home.many .cover::after{background:linear-gradient(180deg,rgba(0,0,0,0) 40%,rgba(0,0,0,.7))}
+  .home.many .cover .title{position:absolute;z-index:1;left:50%;bottom:16px;transform:translateX(-50%);white-space:nowrap}
+  .home.many .spacer{display:none}
+  .home.many .front{padding-top:20px}
+  .cards{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:16px}
+  .card{
+    width:100%;min-height:120px;display:flex;align-items:center;gap:16px;padding:12px;text-align:left;font-size:24px;
+    background:var(--card);color:var(--card-ink);border-radius:22px;
+    box-shadow:0 5px 0 #9A968C,0 8px 22px rgba(0,0,0,.45);
+  }
+  .card:active{transform:translateY(3px);box-shadow:0 2px 0 #9A968C}
+  .card img{width:96px;height:96px;border-radius:14px;object-fit:cover;flex:none;background:#333}
+  .card .body{flex:1;display:flex;flex-direction:column;align-items:flex-start;gap:8px;min-width:0}
+  .card .t{font-size:clamp(26px,7vw,34px);line-height:1.3}
+  .card .go{display:flex;align-items:center;justify-content:center;min-width:64px;min-height:64px;
+    padding:0 14px;border-radius:18px;background:var(--btn);color:var(--btn-ink);font-size:24px;
+    border:3px solid var(--line)}
+  .card.last .go{font-size:22px}
+
+  /* ホーム画面への追加の案内 */
+  .hint{
+    position:relative;z-index:1;margin:0 16px calc(16px + env(safe-area-inset-bottom));
+    background:var(--hint);color:var(--hint-ink);border-radius:22px;padding:18px 18px 16px;
+    font-size:24px;line-height:1.5;box-shadow:0 8px 26px rgba(0,0,0,.5);
+  }
+  .hint p{margin:0 0 12px}
+  .hint .lead{font-size:22px}
+  .hint .how{font-size:26px}
+  .hint .share{display:inline-flex;vertical-align:-6px;width:34px;height:34px;border:3px solid currentColor;
+    border-radius:6px;align-items:center;justify-content:center;font-size:22px;line-height:1;margin:0 2px}
+  .hint .row{display:flex;gap:12px;flex-wrap:wrap}
+  .hint button{min-height:64px;min-width:64px;padding:0 22px;border-radius:18px;font-size:24px}
+  .hint .close{background:#FFFFFF;color:var(--hint-ink);border:3px solid var(--line);margin-left:auto}
+  .hint .install{background:var(--btn);color:var(--btn-ink);border:3px solid var(--line);flex:1}
+  .home.one .front{padding-bottom:20px}
+
+  /* ---------- 再生の画面 ---------- */
+  .player{position:fixed;inset:0;z-index:10;background:#000;display:flex;align-items:center;justify-content:center}
+  .player video{width:100%;height:100%;object-fit:contain;background:#000}
+  .back{
+    position:absolute;z-index:2;
+    top:calc(12px + env(safe-area-inset-top));left:calc(12px + env(safe-area-inset-left));
+    min-width:64px;min-height:64px;padding:0 20px;border-radius:18px;
+    display:flex;align-items:center;gap:.3em;
+    background:#FFFFFF;color:#161310;font-size:26px;border:3px solid #161310;
+    box-shadow:0 4px 16px rgba(0,0,0,.6);
+  }
+  .wait{position:absolute;inset:auto 0 18%;text-align:center;font-size:28px;text-shadow:0 2px 6px #000;pointer-events:none}
+</style>
+
+<!-- ここから本文 -->
+<main id="home" class="home">
+  <div class="cover"><img id="coverImg" alt=""><h1 class="title" id="manyTitle" hidden></h1></div>
+  <div class="spacer"></div>
+  <div class="front" id="front"></div>
+  <div class="hint" id="hint" hidden></div>
+</main>
+
+<section id="player" class="player" hidden>
+  <video id="video" playsinline webkit-playsinline controls preload="none"></video>
+  <button class="back" id="back" type="button" aria-label="もどる">◀ もどる</button>
+  <p class="wait" id="wait" hidden>よみこみちゅう…</p>
+</section>
+
+<script>
+(() => {
+  const $ = s => document.querySelector(s);
+  const home = $('#home'), front = $('#front'), player = $('#player'), video = $('#video');
+  const many = SONGS.length >= 2;
+  let current = -1;       // 今の曲（または最後に見た曲）
+  let finished = false;   // 最後まで見終わったか
+  let resumeAt = 0;       // 途中で「もどる」を押したときの位置
+
+  const ua = navigator.userAgent;
+  const isIOS = /iPhone|iPad|iPod/.test(ua) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+  const isAndroid = /Android/.test(ua);
+
+  /* ---------- 最初の画面を組み立てる ---------- */
+  $('#coverImg').src = many ? APP.cover : SONGS[0].cover;
+  home.classList.add(many ? 'many' : 'one');
+
+  function renderHome() {
+    front.textContent = '';
+    if (!many) {
+      const h = document.createElement('h1');
+      h.className = 'title';
+      h.textContent = SONGS[0].title;
+      const b = document.createElement('button');
+      b.className = 'play';
+      b.type = 'button';
+      b.innerHTML = '<span class="tri">▶</span><span></span>';
+      b.lastChild.textContent = label(0);
+      b.addEventListener('click', () => play(0));
+      front.append(h, b);
+    } else {
+      const t = $('#manyTitle');
+      t.textContent = APP.title; t.hidden = false;
+      const ul = document.createElement('ul');
+      ul.className = 'cards';
+      SONGS.forEach((s, i) => {
+        const li = document.createElement('li');
+        const b = document.createElement('button');
+        b.type = 'button';
+        b.className = 'card' + (i === current && finished ? ' last' : '');
+        const img = document.createElement('img');
+        img.src = s.cover; img.alt = '';
+        const t = document.createElement('span');
+        t.className = 't'; t.textContent = s.title;
+        const go = document.createElement('span');
+        go.className = 'go'; go.textContent = '▶ ' + ({ 'もういちど みる': 'もういちど', 'つづきを みる': 'つづきから' }[label(i)] || 'みる');
+        const body = document.createElement('span');
+        body.className = 'body'; body.append(t, go);
+        b.append(img, body);
+        b.addEventListener('click', () => play(i));
+        li.append(b); ul.append(li);
+      });
+      front.append(ul);
+    }
+  }
+  function label(i) {
+    if (i !== current) return 'みる';
+    if (finished) return 'もういちど みる';
+    if (resumeAt > 5) return 'つづきを みる';
+    return 'みる';
+  }
+
+  /* ---------- 再生 ---------- */
+  function play(i) {
+    const s = SONGS[i];
+    const same = i === current && !finished && resumeAt > 5;
+    if (i !== current || !video.getAttribute('src')) {
+      video.src = s.video;
+      video.poster = s.cover;
+    }
+    current = i; finished = false;
+    home.hidden = true; player.hidden = false;
+    $('#wait').hidden = false;
+    history.pushState({ playing: true }, '');
+    if (same) { try { video.currentTime = resumeAt; } catch (e) {} } else { try { video.currentTime = 0; } catch (e) {} }
+    video.muted = false;
+    const p = video.play();
+    if (p && p.catch) p.catch(() => { /* 自動で始まらないときは、動画の ▶ を押せば始まる */ $('#wait').hidden = true; });
+    enterFull();
+  }
+
+  function enterFull() {
+    if (isIOS && video.webkitEnterFullscreen) {
+      try { video.webkitEnterFullscreen(); }
+      catch (e) { video.addEventListener('loadedmetadata', () => { try { video.webkitEnterFullscreen(); } catch (e2) {} }, { once: true }); }
+      return;
+    }
+    const el = player;
+    const req = el.requestFullscreen || el.webkitRequestFullscreen;
+    if (req) {
+      try {
+        const r = req.call(el, { navigationUI: 'hide' });
+        if (r && r.catch) r.catch(() => {});
+      } catch (e) {}
+    }
+  }
+  function exitFull() {
+    try { if (video.webkitDisplayingFullscreen && video.webkitExitFullscreen) video.webkitExitFullscreen(); } catch (e) {}
+    const fe = document.fullscreenElement || document.webkitFullscreenElement;
+    if (fe) {
+      const x = document.exitFullscreen || document.webkitExitFullscreen;
+      try { const r = x.call(document); if (r && r.catch) r.catch(() => {}); } catch (e) {}
+    }
+  }
+
+  function backHome(ended) {
+    if (player.hidden) return;
+    finished = !!ended;
+    resumeAt = ended ? 0 : (video.currentTime || 0);
+    video.pause();
+    exitFull();
+    player.hidden = true; home.hidden = false;
+    renderHome();
+    home.scrollTop = 0;
+  }
+
+  video.addEventListener('playing', () => { $('#wait').hidden = true; });
+  video.addEventListener('ended', () => {
+    backHome(true);
+    if (history.state && history.state.playing) history.back();
+  });
+  // iPhone で全画面を自分で閉じたときは、そのまま画面いっぱいで続きが流れる（もどるボタンもある）
+  $('#back').addEventListener('click', () => {
+    if (history.state && history.state.playing) history.back(); else backHome(false);
+  });
+  // Android の「戻る」ボタンでも最初の画面へ
+  addEventListener('popstate', () => { if (!player.hidden) backHome(video.ended); });
+
+  renderHome();
+
+  /* ---------- ホーム画面への追加の案内 ---------- */
+  const standalone = matchMedia('(display-mode: standalone)').matches || navigator.standalone === true;
+  let closed = false;
+  try { closed = localStorage.getItem('mama-hint-closed') === '1'; } catch (e) {}
+  const hint = $('#hint');
+  let installEvt = null;
+  addEventListener('beforeinstallprompt', e => { e.preventDefault(); installEvt = e; showHint(); });
+  function showHint() {
+    if (standalone || closed || !(isIOS || isAndroid)) return;
+    hint.innerHTML = '';
+    const lead = document.createElement('p');
+    lead.className = 'lead';
+    lead.textContent = 'ホーム画面に置くと、つぎから すぐ開けます';
+    const how = document.createElement('p');
+    how.className = 'how';
+    if (isIOS) how.innerHTML = '下の 共有ボタン<span class="share" aria-hidden="true">↑</span><br>（□に↑）を押して<br>→『ホーム画面に追加』';
+    else how.innerHTML = '右上の ︙ →<br>『ホーム画面に追加』または<br>『アプリをインストール』';
+    const row = document.createElement('div');
+    row.className = 'row';
+    if (installEvt) {
+      const ib = document.createElement('button');
+      ib.type = 'button'; ib.className = 'install'; ib.textContent = 'ホーム画面に 追加する';
+      ib.addEventListener('click', async () => {
+        const e = installEvt; installEvt = null;
+        try { await e.prompt(); await e.userChoice; } catch (er) {}
+        showHint();
+      });
+      row.append(ib);
+    }
+    const cb = document.createElement('button');
+    cb.type = 'button'; cb.className = 'close'; cb.textContent = 'とじる';
+    cb.addEventListener('click', () => {
+      closed = true; hint.hidden = true;
+      try { localStorage.setItem('mama-hint-closed', '1'); } catch (e) {}
+    });
+    row.append(cb);
+    hint.append(lead, how, row);
+    hint.hidden = false;
+  }
+  addEventListener('appinstalled', () => { hint.hidden = true; });
+  showHint();
+
+  /* ---------- 画面と画像を保存（動画は保存しない） ---------- */
+  if ('serviceWorker' in navigator && location.protocol === 'https:') {
+    addEventListener('load', () => navigator.serviceWorker.register('sw.js').catch(() => {}));
+  }
+})();
+</script>
