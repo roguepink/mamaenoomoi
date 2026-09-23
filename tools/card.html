@@ -1,5 +1,5 @@
 <!doctype html><meta charset="utf-8">
-<!-- アイコンとリンク用サムネイルの型。表紙の画像は make-assets.js が ?cover= で渡す -->
+<!-- アイコンとリンク用サムネイルの型。表紙は ?cover=、アイコン用の画像は ?icon= で make-assets.js が渡す -->
 <style>
   *{box-sizing:border-box} body{margin:0;background:#111014}
   .sq{position:relative;overflow:hidden;background:#111014}
@@ -22,6 +22,8 @@
 <script>
   const q = new URLSearchParams(location.search);
   const src = q.get('cover') || '../assets/covers/01.jpg';
+  const icon = q.get('icon') || src;  // アイコン用の画像（なければ表紙）
   document.documentElement.style.setProperty('--y', q.get('y') || '50%');
-  document.querySelectorAll('img').forEach(i => i.src = src);
+  document.querySelectorAll('#og img').forEach(i => i.src = src);
+  document.querySelectorAll('#icon img, #mask img').forEach(i => i.src = icon);
 </script>

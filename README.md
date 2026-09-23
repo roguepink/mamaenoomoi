@@ -32,11 +32,14 @@
 
 ## 表紙を差し替える
 
-1. 新しい画像を `assets/covers/01.jpg` に上書きする（JPEG、長い辺 1500px くらいで十分）
-2. アイコンとリンク用サムネイルを作り直す：
-   `NODE_PATH=$(npm root -g) node tools/make-assets.js`
-   （顔が上のほうにある写真なら `COVER_Y=35%` を前に付けると、アイコンの切り抜き位置が上に寄ります）
-3. `python3 tools/build.py` → コミット → push
+1. 新しい画像を `assets/covers/01.jpg` に上書きする（JPEG）。
+   表紙は画面の上に幅いっぱいで出て、下の足りない部分は同じ画像をぼかして埋めます。
+   顔は画像の上のほう（上から 1/3 くらいまで）にあると、曲名やボタンに隠れません。
+2. アイコン用に正方形の画像を `assets/covers/01-icon.jpg` として置く（無ければ表紙の真ん中を切ります）
+3. アイコンとリンク用サムネイルを作り直す：
+   `COVER_Y=15% NODE_PATH=$(npm root -g) node tools/make-assets.js`
+   （`COVER_Y` はリンク用サムネイルの切り抜き位置。顔が上のほうなら小さい数字に）
+4. `python3 tools/build.py` → コミット → push
 
 ## 動画の下ごしらえ
 
