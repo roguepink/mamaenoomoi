@@ -68,6 +68,11 @@ const APP = { title: "ママへの思い", cover: SONGS[0].cover };
   }
   .play:active{transform:translateY(4px);box-shadow:0 2px 0 #B98B1C,0 6px 18px rgba(0,0,0,.5)}
   .play .tri{font-size:.85em}
+  /* LINE でこのアプリのリンクを送る（送る側のためのボタン。目立ちすぎないよう小さめ） */
+  .sendline{display:flex;align-items:center;justify-content:center;gap:.4em;align-self:center;
+    min-height:64px;min-width:64px;padding:0 26px;border-radius:20px;font-size:24px;
+    background:#05773A;color:#FFFFFF;border:3px solid #FFFFFF;box-shadow:0 4px 14px rgba(0,0,0,.45)}
+  .sendline:active{transform:translateY(2px)}
 
   /* 曲が2つ以上のとき */
   .home.many .cover{position:relative;inset:auto;height:36vh;min-height:180px;flex:none}
@@ -201,7 +206,7 @@ const APP = { title: "ママへの思い", cover: SONGS[0].cover };
       b.innerHTML = '<span class="tri">▶</span><span></span>';
       b.lastChild.textContent = label(0);
       b.addEventListener('click', () => play(0));
-      front.append(h, b);
+      front.append(h, b, shareButton());
     } else {
       const t = $('#manyTitle');
       t.textContent = APP.title; t.hidden = false;
@@ -224,8 +229,22 @@ const APP = { title: "ママへの思い", cover: SONGS[0].cover };
         b.addEventListener('click', () => play(i));
         li.append(b); ul.append(li);
       });
-      front.append(ul);
+      front.append(ul, shareButton());
     }
+  }
+  // LINE を開いて、このアプリのリンクを送る
+  function shareButton() {
+    const b = document.createElement('button');
+    b.type = 'button'; b.className = 'sendline'; b.id = 'share';
+    b.textContent = 'LINEで おくる';
+    b.addEventListener('click', () => {
+      const url = location.origin + location.pathname;
+      const text = APP.title + '\n' + url;
+      const line = 'https://line.me/R/share?text=' + encodeURIComponent(text);
+      const w = window.open(line, '_blank');
+      if (!w) location.href = line;
+    });
+    return b;
   }
   function label(i) {
     if (i !== current) return 'みる';
