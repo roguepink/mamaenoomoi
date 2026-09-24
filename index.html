@@ -108,7 +108,7 @@ const APP = { title: "ママへの思い", cover: SONGS[0].cover };
   .card:active{transform:translateY(3px);box-shadow:0 1px 0 #8C877D}
   .card img{width:80px;height:80px;border-radius:14px;object-fit:cover;object-position:50% 20%;flex:none;background:#333}
   /* 曲名：動画の題名に合わせた欧文の書体で大きく（日本語の曲名は丸ゴシックのまま） */
-  .card .t{flex:1;min-width:0;font-size:38px;line-height:1.1;letter-spacing:.02em;
+  .card .t{flex:1;min-width:0;font-size:clamp(34px,calc((100vw - 282px) / 2.1),52px);line-height:1.1;letter-spacing:.02em;
     font-family:Georgia,"Times New Roman","Hiragino Mincho ProN","Noto Serif JP",serif;font-weight:700}
   .card .go{flex:none;display:flex;align-items:center;justify-content:center;min-width:64px;min-height:64px;
     padding:0 14px;border-radius:16px;background:var(--btn);color:var(--btn-ink);font-size:24px;
