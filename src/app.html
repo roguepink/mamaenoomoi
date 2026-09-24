@@ -88,7 +88,16 @@ const APP = { title: "ママへの思い", cover: SONGS[0].cover };
     background:rgba(255,255,255,.94);color:var(--card-ink);border-radius:20px;
     box-shadow:0 4px 0 #8C877D,0 8px 20px rgba(0,0,0,.45);
   }
-  .card:active{transform:translateY(3px);box-shadow:0 1px 0 #8C877D}
+  button.card:active{transform:translateY(3px);box-shadow:0 1px 0 #8C877D}
+  /* 途中で戻ったとき：上の段に画像と曲名、下の段に「最初から」「続きから」 */
+  .card.two{flex-direction:column;align-items:stretch;gap:12px;padding:12px}
+  .card.two .head{display:flex;align-items:center;gap:16px}
+  .card.two .t{font-size:48px}
+  .card.two .acts{display:flex;gap:10px}
+  .card.two .acts .go{flex:1;min-width:0;min-height:68px;padding:0 4px;font-size:24px;white-space:nowrap;cursor:pointer;box-shadow:0 4px 0 #B98B1C}
+  .card.two .acts .go .tri{font-size:18px;margin-right:6px}
+  .card.two .acts .go.sub{background:#FFFFFF;box-shadow:0 4px 0 #8C877D}
+  .card.two .acts .go:active{transform:translateY(3px);box-shadow:none}
   .card img{width:80px;height:80px;border-radius:14px;object-fit:cover;object-position:50% 20%;flex:none;background:#333}
   /* 曲名：やわらかい丸ゴシックで大きく（画面の幅に合わせて 32〜48px） */
   .card .t{flex:1;min-width:0;font-size:clamp(32px,calc((100vw - 282px) / 2.36),48px);line-height:1.1;letter-spacing:.01em;
@@ -239,6 +248,30 @@ const APP = { title: "ママへの思い", cover: SONGS[0].cover };
       SONGS.forEach((s, i) => {
         if (i === 0) return;
         const li = document.createElement('li');
+        if (label(i) === '続きを 見る') {
+          // 途中で「もどる」を押したとき：上の段に画像と曲名、下の段に「最初から」「続きから」
+          const box = document.createElement('div');
+          box.className = 'card two';
+          const head = document.createElement('div');
+          head.className = 'head';
+          const img = document.createElement('img');
+          img.src = s.thumb || s.cover; img.alt = '';
+          const t = document.createElement('span');
+          t.className = 't'; t.textContent = s.title;
+          head.append(img, t);
+          const acts = document.createElement('div');
+          acts.className = 'acts';
+          const b1 = document.createElement('button');
+          b1.type = 'button'; b1.className = 'go'; b1.innerHTML = '<span class="tri">▶</span>最初から';
+          b1.addEventListener('click', () => play(i, true));
+          const b2 = document.createElement('button');
+          b2.type = 'button'; b2.className = 'go sub'; b2.innerHTML = '<span class="tri">▶</span>続きから';
+          b2.addEventListener('click', () => play(i, false));
+          acts.append(b1, b2);
+          box.append(head, acts);
+          li.append(box); ul.append(li);
+          return;
+        }
         const b = document.createElement('button');
         b.type = 'button';
         b.className = 'card';
@@ -323,6 +356,7 @@ const APP = { title: "ママへの思い", cover: SONGS[0].cover };
     video.pause();
     exitFull();
     player.hidden = true; home.hidden = false;
+    if (newer) { reloadNow(); return; }
     renderHome();
     home.scrollTop = 0;
   }
@@ -525,6 +559,37 @@ const APP = { title: "ママへの思い", cover: SONGS[0].cover };
   }
   addEventListener('appinstalled', hideHint);
   showHint();
+
+  /* ---------- 自動で新しくする ----------
+     開いたとき・アプリに戻ってきたときに、公開されている版（version.txt）と比べ、
+     新しくなっていたら読み込み直す（動画を見ている最中は、最初の画面に戻ったときに） */
+  const BUILD = '__BUILD__';
+  let newer = null, lastCheck = 0;
+  async function checkUpdate() {
+    if (BUILD.startsWith('__') || Date.now() - lastCheck < 30000) return;
+    lastCheck = Date.now();
+    try {
+      const r = await fetch('version.txt?t=' + Date.now(), { cache: 'no-store' });
+      if (!r.ok) return;
+      const v = (await r.text()).trim();
+      if (!v || v === BUILD) return;
+      // 同じ版のために読み込み直すのは1回だけ（何度も読み込み直し続けないように）
+      let tried = null;
+      try { tried = sessionStorage.getItem('mama-reloaded-for'); } catch (e) {}
+      if (tried === v) return;
+      newer = v; reloadIfIdle();
+    } catch (e) {}
+  }
+  function reloadNow() {
+    try { sessionStorage.setItem('mama-reloaded-for', newer); } catch (e) {}
+    location.reload();
+  }
+  function reloadIfIdle() {
+    if (newer && player.hidden) reloadNow();
+  }
+  document.addEventListener('visibilitychange', () => { if (!document.hidden) checkUpdate(); });
+  addEventListener('pageshow', checkUpdate);
+  checkUpdate();
 
   /* ---------- 画面と画像を保存（動画は保存しない） ---------- */
   if ('serviceWorker' in navigator && location.protocol === 'https:') {

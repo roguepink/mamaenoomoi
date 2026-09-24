@@ -32,27 +32,27 @@ doc = (
     + head_part.strip() + "\n</head>\n<body>\n"
     + main_part.strip() + "\n</body>\n</html>\n"
 )
-# 動画のアドレスに中身の印（?v=…）を付ける。差し替えるとアプリがしまい直す
+# 動画・画像・書体のアドレスに中身の印（?v=…）を付ける。
+# 差し替えると印が変わるので、スマホに残った古いものが使われない（動画はしまい直す）
 def _ver(m):
-    f = root / m.group(2)
+    f = root / m.group(1)
     if not f.exists():
         return m.group(0)
-    return m.group(1) + m.group(2) + "?v=" + hashlib.sha1(f.read_bytes()).hexdigest()[:8] + '"'
-doc = re.sub(r'(video:\s*")([^"?]+)"', _ver, doc)
-(root / "index.html").write_text(doc, encoding="utf-8")
+    return m.group(1) + "?v=" + hashlib.sha1(f.read_bytes()).hexdigest()[:8]
+doc = re.sub(r'(assets/[A-Za-z0-9_./-]+\.(?:jpg|png|woff2|mp4))(?![?\w])', _ver, doc)
 
-# sw.js：最初から保存しておくもの＝画面・アイコン・表紙（動画は入れない）
-covers = sorted(set(re.findall(r'(?:cover|thumb):\s*"([^"]+)"', body)))
-core = ["./", "manifest.webmanifest", "assets/icon-180.png", "assets/icon-192.png", "assets/icon-512.png"] + covers
-for c in core[1:]:
-    if not (root / c).exists():
-        print("※ まだ無いファイル:", c)
-h = hashlib.sha1(doc.encode())
-for c in core[1:]:
-    p = root / c
-    if p.exists():
-        h.update(p.read_bytes())
+# 最初から保存しておくもの＝画面・アイコン・表紙・書体（動画は入れない）
+core = ["./", "manifest.webmanifest"] + sorted(set(
+    u for u in re.findall(r'(assets/[A-Za-z0-9_./-]+\.(?:jpg|png|woff2)\?v=\w+)', doc)
+    if "og.jpg" not in u))
+
+# 版の印：画面と中身が変わると変わる。アプリはこれを見て、開き直したときに自動で新しくする
+build = hashlib.sha1(doc.encode()).hexdigest()[:10]
+doc = doc.replace("__BUILD__", build)
+(root / "index.html").write_text(doc, encoding="utf-8")
+(root / "version.txt").write_text(build + "\n", encoding="utf-8")
+
 sw = (root / "src" / "sw.js").read_text(encoding="utf-8")
-sw = sw.replace("__VERSION__", h.hexdigest()[:10]).replace("__CORE__", json.dumps(core, ensure_ascii=False))
+sw = sw.replace("__VERSION__", build).replace("__CORE__", json.dumps(core, ensure_ascii=False))
 (root / "sw.js").write_text(sw, encoding="utf-8")
-print("index.html:", len(doc), "bytes / sw.js 保存対象:", len(core), "件")
+print("index.html:", len(doc), "bytes / 版:", build, "/ sw.js 保存対象:", len(core), "件")

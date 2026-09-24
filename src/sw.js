@@ -17,9 +17,10 @@ self.addEventListener('fetch', e => {
   const url = new URL(req.url);
   if (req.method !== 'GET' || url.origin !== location.origin) return;
   if (/\.mp4$/i.test(url.pathname) || req.headers.has('range') || req.destination === 'video') return;
+  if (url.pathname.endsWith('/version.txt')) return;   // 版の確認は、いつもネットに聞く
   if (req.mode === 'navigate') {
     // 画面は新しいものを優先（更新がすぐ届くように）。つながらないときは保存分。
-    e.respondWith(fetch(req).then(r => {
+    e.respondWith(fetch(req, { cache: 'no-cache' }).then(r => {
       const copy = r.clone(); caches.open(CACHE).then(c => c.put('./', copy)); return r;
     }).catch(() => caches.match('./')));
     return;
