@@ -15,6 +15,9 @@ const SONGS = [
 const APP = { title: "ママへの思い", cover: SONGS[0].cover };
 </script>
 <style>
+  /* 2曲目からのカードの曲名（欧文）用の丸ゴシック：M PLUS Rounded 1c（SIL Open Font License） */
+  @font-face{font-family:"Title Rounded";src:url("assets/fonts/mplus-rounded-800-latin.woff2") format("woff2");
+    font-weight:800;font-display:swap;unicode-range:U+0000-00FF}
   :root{
     --bg:#111014;
     --ink:#FFFFFF;
@@ -87,9 +90,9 @@ const APP = { title: "ママへの思い", cover: SONGS[0].cover };
   }
   .card:active{transform:translateY(3px);box-shadow:0 1px 0 #8C877D}
   .card img{width:80px;height:80px;border-radius:14px;object-fit:cover;object-position:50% 20%;flex:none;background:#333}
-  /* 曲名：動画の題名に合わせた欧文の書体で大きく（日本語の曲名は丸ゴシックのまま） */
-  .card .t{flex:1;min-width:0;font-size:clamp(34px,calc((100vw - 282px) / 2.1),52px);line-height:1.1;letter-spacing:.02em;
-    font-family:Georgia,"Times New Roman","Hiragino Mincho ProN","Noto Serif JP",serif;font-weight:700}
+  /* 曲名：やわらかい丸ゴシックで大きく（画面の幅に合わせて 32〜48px） */
+  .card .t{flex:1;min-width:0;font-size:clamp(32px,calc((100vw - 282px) / 2.36),48px);line-height:1.1;letter-spacing:.01em;
+    font-family:"Title Rounded","Hiragino Maru Gothic ProN","M PLUS Rounded 1c",sans-serif;font-weight:800}
   .card .go{flex:none;display:flex;align-items:center;justify-content:center;min-width:64px;min-height:64px;
     padding:0 14px;border-radius:16px;background:var(--btn);color:var(--btn-ink);font-size:24px;
     border:3px solid var(--line)}

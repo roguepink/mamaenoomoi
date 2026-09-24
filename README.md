@@ -75,6 +75,7 @@ ffmpeg -i 元.mp4 -vf "scale='if(gt(iw,ih),1280,-2)':'if(gt(iw,ih),-2,1280)'" \
 | `src/app.html` | 本体（画面・見た目・動き・曲の一覧）。直すのはここ |
 | `tools/build.py` | `src/app.html` から `index.html` と `sw.js` を作る（この2つは直接直さない） |
 | `src/sw.js` | 画面と画像を保存しておく係の元。動画には一切さわらない |
+| `assets/fonts/` | 2曲目カードの曲名用の丸ゴシック（M PLUS Rounded 1c・欧文のみ・SIL Open Font License） |
 | `tools/card.html`, `tools/make-assets.js` | 表紙からアイコン（180/192/512・maskable）と `og.jpg` を書き出す |
 | `manifest.webmanifest` | ホーム画面に置いたときの名前・アイコン・全画面表示の設定 |
 | `.github/workflows/deploy.yml` | push のたびに GitHub Pages へ自動公開 |
