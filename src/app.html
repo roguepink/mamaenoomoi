@@ -210,9 +210,9 @@ const APP = { title: "ママへの思い", cover: SONGS[0].cover };
         b.addEventListener('click', () => play(0, fromStart));
         return b;
       };
-      if (label(0) === 'つづきを みる') {
-        // 途中で「もどる」を押したとき：上に「最初から」、下に「つづき」
-        front.append(h, mk('最初から みる', 'play', true), mk('つづきを みる', 'play sub', false), shareButton());
+      if (label(0) === '続きを 見る') {
+        // 途中で「もどる」を押したとき：上に「最初から」、下に「続き」
+        front.append(h, mk('最初から 見る', 'play', true), mk('続きを 見る', 'play sub', false), shareButton());
       } else {
         front.append(h, mk(label(0), 'play', true), shareButton());
       }
@@ -231,7 +231,7 @@ const APP = { title: "ママへの思い", cover: SONGS[0].cover };
         const t = document.createElement('span');
         t.className = 't'; t.textContent = s.title;
         const go = document.createElement('span');
-        go.className = 'go'; go.textContent = '▶ ' + ({ 'もういちど みる': 'もういちど', 'つづきを みる': 'つづきから' }[label(i)] || 'みる');
+        go.className = 'go'; go.textContent = '▶ ' + ({ 'もう一度 見る': 'もう一度', '続きを 見る': '続きから' }[label(i)] || '見る');
         const body = document.createElement('span');
         body.className = 'body'; body.append(t, go);
         b.append(img, body);
@@ -245,7 +245,7 @@ const APP = { title: "ママへの思い", cover: SONGS[0].cover };
   function shareButton() {
     const b = document.createElement('button');
     b.type = 'button'; b.className = 'sendline'; b.id = 'share';
-    b.textContent = 'LINEで おくる';
+    b.textContent = 'LINEで 送る';
     b.addEventListener('click', () => {
       const url = location.origin + location.pathname;
       const text = APP.title + '\n' + url;
@@ -256,10 +256,10 @@ const APP = { title: "ママへの思い", cover: SONGS[0].cover };
     return b;
   }
   function label(i) {
-    if (i !== current) return 'みる';
-    if (finished) return 'もういちど みる';
-    if (resumeAt > 5) return 'つづきを みる';
-    return 'みる';
+    if (i !== current) return '見る';
+    if (finished) return 'もう一度 見る';
+    if (resumeAt > 5) return '続きを 見る';
+    return '見る';
   }
 
   /* ---------- 再生 ---------- */
