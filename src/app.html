@@ -246,7 +246,9 @@ const APP = { title: "ママへの思い", cover: SONGS[0].cover };
     b.type = 'button'; b.className = 'sendline'; b.id = 'share';
     b.textContent = 'LINEで 送る';
     b.addEventListener('click', () => {
-      const url = location.origin + location.pathname;
+      // openExternalBrowser=1：LINE で押したとき、LINE の中ではなくいつものブラウザ（Safari / Chrome）で開く。
+      // そうすると「ホーム画面に追加」ができる（LINE の中の画面ではできない）
+      const url = location.origin + location.pathname + '?openExternalBrowser=1';
       const text = APP.title + '\n' + url;
       const line = 'https://line.me/R/share?text=' + encodeURIComponent(text);
       const w = window.open(line, '_blank');
