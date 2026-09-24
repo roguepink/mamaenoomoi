@@ -32,10 +32,17 @@ doc = (
     + head_part.strip() + "\n</head>\n<body>\n"
     + main_part.strip() + "\n</body>\n</html>\n"
 )
+# 動画のアドレスに中身の印（?v=…）を付ける。差し替えるとアプリがしまい直す
+def _ver(m):
+    f = root / m.group(2)
+    if not f.exists():
+        return m.group(0)
+    return m.group(1) + m.group(2) + "?v=" + hashlib.sha1(f.read_bytes()).hexdigest()[:8] + '"'
+doc = re.sub(r'(video:\s*")([^"?]+)"', _ver, doc)
 (root / "index.html").write_text(doc, encoding="utf-8")
 
 # sw.js：最初から保存しておくもの＝画面・アイコン・表紙（動画は入れない）
-covers = sorted(set(re.findall(r'cover:\s*"([^"]+)"', body)))
+covers = sorted(set(re.findall(r'(?:cover|thumb):\s*"([^"]+)"', body)))
 core = ["./", "manifest.webmanifest", "assets/icon-180.png", "assets/icon-192.png", "assets/icon-512.png"] + covers
 for c in core[1:]:
     if not (root / c).exists():

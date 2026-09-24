@@ -3,7 +3,8 @@
 /* ================================================================
    曲の一覧（ここだけ直せば曲が増えます）
    1曲 = { title: 曲名, video: 動画ファイル, cover: 表紙の画像 }
-   2曲以上になると、最初の画面が「曲カードの縦並び」に自動で変わります。
+   1曲目が主役（表紙いっぱい＋大きな「見る」ボタン）。
+   2曲目からは、その下に小さめの「もう1曲」カードとして並びます。
    ================================================================ */
 const SONGS = [
   { title: "ママへの思い", video: "assets/video/01.mp4", cover: "assets/covers/01.jpg" },
@@ -75,26 +76,20 @@ const APP = { title: "ママへの思い", cover: SONGS[0].cover };
     background:#05773A;color:#FFFFFF;border:3px solid #FFFFFF;box-shadow:0 4px 14px rgba(0,0,0,.45)}
   .sendline:active{transform:translateY(2px)}
 
-  /* 曲が2つ以上のとき */
-  .home.many .cover{position:relative;inset:auto;height:36vh;min-height:180px;flex:none}
-  .home.many .cover::after{background:linear-gradient(180deg,rgba(0,0,0,0) 40%,rgba(0,0,0,.7))}
-  .home.many .cover .title{position:absolute;z-index:1;left:50%;bottom:16px;transform:translateX(-50%);white-space:nowrap}
-  .home.many .spacer{display:none}
-  .home.many .front{padding-top:20px}
-  .cards{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:16px}
+  /* 2曲目から：主役のボタンの下に、小さめのカードで並べる */
+  .subs{list-style:none;margin:4px 0 0;padding:0;display:flex;flex-direction:column;gap:12px}
+  .subs .cap{font-size:22px;color:#FFFFFF;text-shadow:0 2px 6px #000;margin:0 4px -4px}
   .card{
-    width:100%;min-height:120px;display:flex;align-items:center;gap:16px;padding:12px;text-align:left;font-size:24px;
-    background:var(--card);color:var(--card-ink);border-radius:22px;
-    box-shadow:0 5px 0 #9A968C,0 8px 22px rgba(0,0,0,.45);
+    width:100%;min-height:88px;display:flex;align-items:center;gap:14px;padding:10px 12px;text-align:left;font-size:24px;
+    background:rgba(255,255,255,.94);color:var(--card-ink);border-radius:20px;
+    box-shadow:0 4px 0 #8C877D,0 8px 20px rgba(0,0,0,.45);
   }
-  .card:active{transform:translateY(3px);box-shadow:0 2px 0 #9A968C}
-  .card img{width:96px;height:96px;border-radius:14px;object-fit:cover;object-position:50% 20%;flex:none;background:#333}
-  .card .body{flex:1;display:flex;flex-direction:column;align-items:flex-start;gap:8px;min-width:0}
-  .card .t{font-size:clamp(26px,7vw,34px);line-height:1.3}
-  .card .go{display:flex;align-items:center;justify-content:center;min-width:64px;min-height:64px;
-    padding:0 14px;border-radius:18px;background:var(--btn);color:var(--btn-ink);font-size:24px;
+  .card:active{transform:translateY(3px);box-shadow:0 1px 0 #8C877D}
+  .card img{width:68px;height:68px;border-radius:12px;object-fit:cover;object-position:50% 20%;flex:none;background:#333}
+  .card .t{flex:1;min-width:0;font-size:26px;line-height:1.25}
+  .card .go{flex:none;display:flex;align-items:center;justify-content:center;min-width:64px;min-height:64px;
+    padding:0 14px;border-radius:16px;background:var(--btn);color:var(--btn-ink);font-size:24px;
     border:3px solid var(--line)}
-  .card.last .go{font-size:22px}
 
   /* ホーム画面への追加の案内 */
   .hint{
@@ -151,7 +146,7 @@ const APP = { title: "ママへの思い", cover: SONGS[0].cover };
 
 <!-- ここから本文 -->
 <main id="home" class="home">
-  <div class="cover"><img class="bg" id="coverBg" alt=""><img class="fg" id="coverImg" alt=""><h1 class="title" id="manyTitle" hidden></h1></div>
+  <div class="cover"><img class="bg" id="coverBg" alt=""><img class="fg" id="coverImg" alt=""></div>
   <div class="spacer"></div>
   <div class="front" id="front"></div>
   <div class="hint" id="hint" hidden></div>
@@ -182,7 +177,6 @@ const APP = { title: "ママへの思い", cover: SONGS[0].cover };
 (() => {
   const $ = s => document.querySelector(s);
   const home = $('#home'), front = $('#front'), player = $('#player'), video = $('#video');
-  const many = SONGS.length >= 2;
   let current = -1;       // 今の曲（または最後に見た曲）
   let finished = false;   // 最後まで見終わったか
   let resumeAt = 0;       // 途中で「もどる」を押したときの位置
@@ -192,54 +186,58 @@ const APP = { title: "ママへの思い", cover: SONGS[0].cover };
   const isAndroid = /Android/.test(ua);
 
   /* ---------- 最初の画面を組み立てる ---------- */
-  $('#coverImg').src = $('#coverBg').src = many ? APP.cover : SONGS[0].cover;
-  home.classList.add(many ? 'many' : 'one');
+  $('#coverImg').src = $('#coverBg').src = APP.cover;
+  home.classList.add('one');
 
   function renderHome() {
     front.textContent = '';
-    if (!many) {
-      const h = document.createElement('h1');
-      h.className = 'title';
-      h.textContent = SONGS[0].title;
-      const mk = (text, cls, fromStart) => {
-        const b = document.createElement('button');
-        b.className = cls;
-        b.type = 'button';
-        b.innerHTML = '<span class="tri">▶</span><span></span>';
-        b.lastChild.textContent = text;
-        b.addEventListener('click', () => play(0, fromStart));
-        return b;
-      };
-      if (label(0) === '続きを 見る') {
-        // 途中で「もどる」を押したとき：上に「最初から」、下に「続き」
-        front.append(h, mk('最初から 見る', 'play', true), mk('続きを 見る', 'play sub', false), shareButton());
-      } else {
-        front.append(h, mk(label(0), 'play', true), shareButton());
-      }
+    // 主役（1曲目）
+    const h = document.createElement('h1');
+    h.className = 'title';
+    h.textContent = SONGS[0].title;
+    const mk = (text, cls, fromStart) => {
+      const b = document.createElement('button');
+      b.className = cls;
+      b.type = 'button';
+      b.innerHTML = '<span class="tri">▶</span><span></span>';
+      b.lastChild.textContent = text;
+      b.addEventListener('click', () => play(0, fromStart));
+      return b;
+    };
+    front.append(h);
+    if (label(0) === '続きを 見る') {
+      // 途中で「もどる」を押したとき：上に「最初から」、下に「続き」
+      front.append(mk('最初から 見る', 'play', true), mk('続きを 見る', 'play sub', false));
     } else {
-      const t = $('#manyTitle');
-      t.textContent = APP.title; t.hidden = false;
+      front.append(mk(label(0), 'play', true));
+    }
+    // 2曲目から（小さめのカード）
+    if (SONGS.length > 1) {
       const ul = document.createElement('ul');
-      ul.className = 'cards';
+      ul.className = 'subs';
+      const cap = document.createElement('li');
+      cap.className = 'cap';
+      cap.textContent = SONGS.length > 2 ? 'ほかの曲' : 'もう1曲';
+      ul.append(cap);
       SONGS.forEach((s, i) => {
+        if (i === 0) return;
         const li = document.createElement('li');
         const b = document.createElement('button');
         b.type = 'button';
-        b.className = 'card' + (i === current && finished ? ' last' : '');
+        b.className = 'card';
         const img = document.createElement('img');
-        img.src = s.cover; img.alt = '';
+        img.src = s.thumb || s.cover; img.alt = '';
         const t = document.createElement('span');
         t.className = 't'; t.textContent = s.title;
         const go = document.createElement('span');
         go.className = 'go'; go.textContent = '▶ ' + ({ 'もう一度 見る': 'もう一度', '続きを 見る': '続きから' }[label(i)] || '見る');
-        const body = document.createElement('span');
-        body.className = 'body'; body.append(t, go);
-        b.append(img, body);
+        b.append(img, t, go);
         b.addEventListener('click', () => play(i));
         li.append(b); ul.append(li);
       });
-      front.append(ul, shareButton());
+      front.append(ul);
     }
+    front.append(shareButton());
   }
   // LINE を開いて、このアプリのリンクを送る
   function shareButton() {
@@ -266,10 +264,16 @@ const APP = { title: "ママへの思い", cover: SONGS[0].cover };
   function play(i, fromStart) {
     const s = SONGS[i];
     const same = !fromStart && i === current && !finished && resumeAt > 5;
-    if (i !== current || !video.getAttribute('src')) {
-      video.src = s.video;
+    // スマホの中にしまってあればそちらから、なければネットから流す
+    const want = stored[i] || s.video;
+    if (i !== current || video.getAttribute('src') !== want) {
+      video.src = want;
       video.poster = s.cover;
     }
+    usingStored = !!stored[i];
+    clearTimeout(guard);
+    if (usingStored) guard = setTimeout(() => { if (video.readyState < 1) fallback(); }, 6000);
+    else keep(i);
     current = i; finished = false;
     home.hidden = true; player.hidden = false;
     $('#wait').hidden = false;
@@ -305,6 +309,72 @@ const APP = { title: "ママへの思い", cover: SONGS[0].cover };
   }
 
   video.addEventListener('playing', () => { $('#wait').hidden = true; });
+
+  /* ---------- 動画をスマホの中にしまう ----------
+     1回目はネットから流しつつ、裏で動画を丸ごとしまっておく。2回目からはしまった動画から流す
+     （通信量がかからない）。しまった動画で流せなかったときは、すぐネットからの再生に切り替える。
+     ※ 画面と画像の保存係（sw.js）とは別に、ここで直接しまう（sw.js は動画にはさわらない） */
+  const VIDEO_STORE = 'video-store';
+  const canStore = 'caches' in window && window.isSecureContext;
+  const stored = [];          // しまってある動画（すぐ流せる形）
+  const broken = [];          // この回はしまった動画で流せなかった曲
+  const saving = [];
+  let usingStored = false, guard = 0;
+  const abs = u => new URL(u, location.href).href;
+  const cellular = () => { const c = navigator.connection; return !!(c && (c.saveData || c.type === 'cellular')); };
+
+  async function loadStored(i) {
+    if (!canStore || broken[i]) return;
+    try {
+      const r = await (await caches.open(VIDEO_STORE)).match(abs(SONGS[i].video));
+      if (!r) return;
+      const b = await r.blob();
+      if (b.size > 100000) stored[i] = URL.createObjectURL(b);
+    } catch (e) {}
+  }
+  async function keep(i) {
+    if (!canStore || stored[i] || saving[i] || broken[i] || cellular()) return;
+    saving[i] = true;
+    try {
+      const cache = await caches.open(VIDEO_STORE);
+      const url = abs(SONGS[i].video);
+      if (!(await cache.match(url))) {
+        const r = await fetch(url);
+        if (r.status !== 200) return;
+        await cache.put(url, r);
+      }
+      await loadStored(i);
+    } catch (e) {
+    } finally { saving[i] = false; }
+  }
+  function fallback() {
+    if (!usingStored || current < 0) return;
+    usingStored = false; clearTimeout(guard);
+    broken[current] = true;
+    try { URL.revokeObjectURL(stored[current]); } catch (e) {}
+    stored[current] = null;
+    const t = video.currentTime || 0;
+    video.src = SONGS[current].video;
+    try { video.currentTime = t; } catch (e) {}
+    const p = video.play();
+    if (p && p.catch) p.catch(() => { $('#wait').hidden = true; });
+  }
+  video.addEventListener('error', () => { if (usingStored) fallback(); });
+  video.addEventListener('loadedmetadata', () => clearTimeout(guard));
+
+  (async () => {
+    if (!canStore) return;
+    try { if (navigator.storage && navigator.storage.persist) navigator.storage.persist(); } catch (e) {}
+    try {
+      // 差し替え前の古い動画は消す
+      const cache = await caches.open(VIDEO_STORE);
+      const now = SONGS.map(s => abs(s.video));
+      for (const req of await cache.keys()) if (!now.includes(req.url)) await cache.delete(req);
+    } catch (e) {}
+    for (let i = 0; i < SONGS.length; i++) await loadStored(i);
+    // 主役の曲だけは、開いたときに裏でしまっておく（2曲目からは、1回見たときにしまう）
+    setTimeout(() => keep(0), 3000);
+  })();
   video.addEventListener('ended', () => {
     backHome(true);
     if (history.state && history.state.playing) history.back();

@@ -1,7 +1,7 @@
 // 画面と画像だけを保存して、電波が弱くても最初の画面がすぐ出るようにする。
 // 動画（.mp4）へのリクエストには一切さわらない。
 // （iPhone の Safari は、ここを通した動画の途中読み込みで再生に失敗することがあるため）
-const CACHE = 'mama-c8b946ad7b';
+const CACHE = 'mama-32bb7f6d02';
 const CORE = ["./", "manifest.webmanifest", "assets/icon-180.png", "assets/icon-192.png", "assets/icon-512.png", "assets/covers/01.jpg"];
 
 self.addEventListener('install', e => {
@@ -9,7 +9,7 @@ self.addEventListener('install', e => {
 });
 self.addEventListener('activate', e => {
   e.waitUntil(caches.keys()
-    .then(ks => Promise.all(ks.filter(k => k !== CACHE).map(k => caches.delete(k))))
+    .then(ks => Promise.all(ks.filter(k => k.startsWith('mama-') && k !== CACHE).map(k => caches.delete(k))))
     .then(() => self.clients.claim()));
 });
 self.addEventListener('fetch', e => {
