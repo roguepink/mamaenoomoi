@@ -88,6 +88,7 @@ const APP = { title: "ママへの思い", cover: SONGS[0].cover };
   }
   .play:active{transform:translateY(4px);box-shadow:0 2px 0 #B98B1C,0 6px 18px rgba(0,0,0,.5)}
   .play .tri{font-size:.85em}
+  .play.sub{background:#FFFFFF;min-height:84px;font-size:clamp(28px,7.5vw,38px);box-shadow:0 6px 0 #8C877D,0 10px 28px rgba(0,0,0,.55)}
   /* LINE でこのアプリのリンクを送る（送る側のためのボタン。目立ちすぎないよう小さめ） */
   .sendline{display:flex;align-items:center;justify-content:center;gap:.4em;align-self:center;
     min-height:64px;min-width:64px;padding:0 26px;border-radius:20px;font-size:24px;
@@ -220,13 +221,21 @@ const APP = { title: "ママへの思い", cover: SONGS[0].cover };
       const h = document.createElement('h1');
       h.className = 'title';
       h.textContent = SONGS[0].title;
-      const b = document.createElement('button');
-      b.className = 'play';
-      b.type = 'button';
-      b.innerHTML = '<span class="tri">▶</span><span></span>';
-      b.lastChild.textContent = label(0);
-      b.addEventListener('click', () => play(0));
-      front.append(h, b, shareButton());
+      const mk = (text, cls, fromStart) => {
+        const b = document.createElement('button');
+        b.className = cls;
+        b.type = 'button';
+        b.innerHTML = '<span class="tri">▶</span><span></span>';
+        b.lastChild.textContent = text;
+        b.addEventListener('click', () => play(0, fromStart));
+        return b;
+      };
+      if (label(0) === 'つづきを みる') {
+        // 途中で「もどる」を押したとき：上に「最初から」、下に「つづき」
+        front.append(h, mk('最初から みる', 'play', true), mk('つづきを みる', 'play sub', false), shareButton());
+      } else {
+        front.append(h, mk(label(0), 'play', true), shareButton());
+      }
     } else {
       const t = $('#manyTitle');
       t.textContent = APP.title; t.hidden = false;
@@ -274,9 +283,9 @@ const APP = { title: "ママへの思い", cover: SONGS[0].cover };
   }
 
   /* ---------- 再生 ---------- */
-  function play(i) {
+  function play(i, fromStart) {
     const s = SONGS[i];
-    const same = i === current && !finished && resumeAt > 5;
+    const same = !fromStart && i === current && !finished && resumeAt > 5;
     if (i !== current || !video.getAttribute('src')) {
       video.src = s.video;
       video.poster = s.cover;
