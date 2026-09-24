@@ -484,13 +484,13 @@ const APP = { title: "ママへの思い", cover: SONGS[0].cover };
     hint.innerHTML = '';
     const lead = document.createElement('p');
     lead.className = 'lead';
-    lead.textContent = 'ホーム画面に置くと、つぎから すぐ開けます';
+    lead.textContent = isIOS ? 'ホーム画面に置くと、つぎから すぐ開けます' : 'ホーム画面に追加すると、次から すぐ開けます';
     const parts = [lead];
     if (isIOS) {
       // iPhone は自分で操作するしかないので、手順をしっかり見せる
       const how = document.createElement('p');
       how.className = 'how';
-      how.innerHTML = '下の 共有ボタン<span class="share" aria-hidden="true">↑</span><br>（□に↑）を押して<br>→『ホーム画面に追加』';
+      how.innerHTML = '下の 共有ボタン<span class="share" aria-hidden="true">↑</span><br>を押して<br>→『ホーム画面に追加』';
       parts.push(how);
     } else if (installEvt) {
       // Android（Chrome）：ボタン1つで追加できる
